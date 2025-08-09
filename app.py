@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, send_from_directory
 from PIL import Image
 import io
 
@@ -14,6 +14,11 @@ QUALITY_MAP = {
     'medium': 75,
     'low': 50
 }
+
+# Google verification route
+@app.route('/google9b580fd35a95a6b4.html')
+def serve_verification():
+    return send_from_directory('static', 'google9b580fd35a95a6b4.html')
 
 @app.route('/')
 def index():
