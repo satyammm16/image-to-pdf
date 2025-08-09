@@ -60,8 +60,10 @@ def upload():
 
     return send_file(pdf_bytes, mimetype='application/pdf', download_name='converted.pdf')
 
-if __name__ == '__main__':
-    app.run(debug=True, port=8000)
+# Test route for debugging
 @app.route('/test')
 def test():
     return "Test route is working!"
+
+if __name__ == '__main__':
+    app.run(debug=True, port=8000)
