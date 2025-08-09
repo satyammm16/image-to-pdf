@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Image to PDF Converter</title>
+  <meta name="description" content="Convert multiple images to a single PDF or ZIP online quickly and easily." />
+  <meta name="keywords" content="image to pdf, pdf converter, zip images, online pdf, convert images to pdf" />
+  <meta name="author" content="Your Name or Company" />
+  <style>
+    body {
+      background: #d0e8ff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      padding: 0 20px;
+    }
+    .container {
+      background: white;
+      padding: 35px 45px;
+      border-radius: 15px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.6s ease forwards;
+      transition: transform 0.3s ease;
+    }
+    .container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 25px 45px rgba(0,0,0,0.2);
+    }
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    h1 {
+      margin-bottom: 30px;
+      color: #003f7d;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      text-align: left;
+      color: #003f7d;
+    }
+
+    /* Drag & Drop zone */
+    #dropZone {
+      border: 3px dashed #a8cfff;
+      padding: 25px;
+      border-radius: 15px;
+      color: #3399ff;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 22px;
+      user-select: none;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+      text-align: center;
+    }
+    #dropZone.dragover {
+      background-color: #cce4ff;
+      border-color: #0066ff;
+    }
+
+    input[type="file"],
+    select,
+    input[type="text"] {
+      margin-bottom: 22px;
+      width: 100%;
+      padding: 14px 12px;
+      border-radius: 10px;
+      border: 2px solid #a8cfff;
+      font-size: 15px;
+      color: #003f7d;
+      background: #f5fbff;
+      transition: border-color 0.3s ease;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+    input[type="file"]:hover,
+    select:hover,
+    input[type="file"]:focus,
+    select:focus,
+    input[type="text"]:focus {
+      border-color: #3399ff;
+      outline: none;
+    }
+    input[type="file"] {
+      display: none;
+      cursor: default;
+    }
+
+    button {
+      background-color: #0066ff;
+      color: white;
+      border: none;
+      padding: 14px 25px;
+      border-radius: 12px;
+      font-size: 17px;
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: 0 8px 15px rgba(0,102,255,0.4);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.25s ease;
+      width: 100%;
+    }
+    button:hover:enabled {
+      background-color: #004cb3;
+      box-shadow: 0 12px 20px rgba(0,76,179,0.6);
+      transform: scale(1.05);
+    }
+    button:disabled {
+      background-color: #a0bffb;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    #progressContainer {
+      width: 100%;
+      background: #cce4ff;
+      border-radius: 12px;
+      margin-top: 18px;
+      height: 22px;
+      display: none;
+      overflow: hidden;
+      box-shadow: inset 0 1px 3px rgba(255,255,255,0.5);
+    }
+    #progressBar {
+      height: 100%;
+      width: 0%;
+      background-color: #0066ff;
+      transition: width 0.4s ease;
+    }
+    #progressText {
+      margin-top: 6px;
+      font-size: 15px;
+      color: #004a99;
+      font-weight: 600;
+      display: none;
+    }
+    #sizeEstimate {
+      color: #004a99;
+      font-size: 15px;
+      margin-top: 15px;
+      min-height: 22px;
+      font-weight: 600;
+      text-align: left;
+    }
+    #loadingSpinner svg {
+      animation: spin 1s linear infinite;
+      margin: 20px auto 0;
+      display: block;
+    }
+    @keyframes spin {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+    footer {
+      margin-top: 22px;
+      font-size: 13px;
+      color: #335577;
+      font-style: italic;
+      letter-spacing: 0.5px;
+    }
+    @media (max-width: 480px) {
+      .container {
+        padding: 25px 20px;
+        max-width: 95%;
+      }
+      input[type="file"],
+      select,
+      input[type="text"],
+      button {
+        font-size: 16px;
+        padding: 16px 14px;
+      }
+      h1 {
+        font-size: 24px;
+      }
+      #sizeEstimate {
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Image to PDF / ZIP Converter</h1>
+    <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data" novalidate>
+      <label for="images">Upload Images (or drag & drop here):</label>
+      <div id="dropZone">Drag & Drop images here or click to select</div>
+      <input type="file" id="images" name="images" multiple accept="image/*" required />
+
+      <label for="output_format">Select Output Format:</label>
+      <select name="output_format" id="output_format" required>
+        <option value="pdf" selected>PDF (Single file)</option>
+        <option value="zip">ZIP (All images compressed)</option>
+      </select>
+
+      <label for="page_size">Select PDF Page Size:</label>
+      <select name="page_size" id="page_size" required>
+        <option value="A4" selected>A4 (210 x 297 mm)</option>
+        <option value="Letter">Letter (8.5 x 11 in)</option>
+      </select>
+
+      <label for="quality">Select Image Quality (Compression):</label>
+      <select name="quality" id="quality" required>
+        <option value="high" selected>High Quality</option>
+        <option value="medium">Medium Quality</option>
+        <option value="low">Low Quality</option>
+      </select>
+
+      <label for="pdf_name">Output File Name:</label>
+      <input type="text" name="pdf_name" id="pdf_name" placeholder="Enter file name" value="converted" required />
+
+      <button type="submit">Convert</button>
+    </form>
+
+    <p id="sizeEstimate">Estimated Output Size: -</p>
+
+    <div id="progressContainer">
+      <div id="progressBar"></div>
+    </div>
+    <div id="progressText">Uploading: 0%</div>
+
+    <div id="loadingSpinner" style="display:none;">
+      <svg width="50" height="50" viewBox="0 0 50 50">
+        <circle cx="25" cy="25" r="20" stroke="#0066ff" stroke-width="5" fill="none" stroke-linecap="round" />
+      </svg>
+    </div>
+
+    <footer>Powered by Flask &amp; Pillow</footer>
+  </div>
+
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('images');
+    const form = document.getElementById('uploadForm');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const sizeEstimate = document.getElementById('sizeEstimate');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const pageSizeSelect = document.getElementById('page_size');
+    const qualitySelect = document.getElementById('quality');
+    const outputFormatSelect = document.getElementById('output_format');
+    const pdfNameInput = document.getElementById('pdf_name');
+    const submitButton = form.querySelector('button[type="submit"]');
+
+    const baseSizes = { 'A4': 500, 'Letter': 600 }; // approx KB per image
+    const qualityMultiplier = { 'high': 1, 'medium': 0.7, 'low': 0.4 };
+
+    // Drag & Drop handlers
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', e => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if(e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        updateEstimate();
+      }
+    });
+
+    fileInput.addEventListener('change', updateEstimate);
+    pageSizeSelect.addEventListener('change', updateEstimate);
+    qualitySelect.addEventListener('change', updateEstimate);
+    outputFormatSelect.addEventListener('change', updateEstimate);
+
+    function updateEstimate() {
+      const filesCount = fileInput.files.length;
+      const pageSize = pageSizeSelect.value;
+      const quality = qualitySelect.value;
+      const outputFormat = outputFormatSelect.value;
+
+      if(filesCount === 0) {
+        sizeEstimate.textContent = "Estimated Output Size: -";
+        return;
+      }
+
+      if(outputFormat === 'pdf') {
+        let estimatedSizeKB = baseSizes[pageSize] * qualityMultiplier[quality] * filesCount;
+        estimatedSizeKB = Math.round(estimatedSizeKB * 10) / 10;
+        sizeEstimate.textContent = `Estimated PDF Size: ~ ${estimatedSizeKB} KB (${filesCount} image${filesCount > 1 ? 's' : ''})`;
+      } else if(outputFormat === 'zip') {
+        // Estimate ZIP size roughly as sum of image sizes (not compressed)
+        let totalSizeBytes = 0;
+        for(let i = 0; i < fileInput.files.length; i++) {
+          totalSizeBytes += fileInput.files[i].size;
+        }
+        let sizeKB = (totalSizeBytes / 1024).toFixed(1);
+        sizeEstimate.textContent = `Estimated ZIP Size: ~ ${sizeKB} KB (${filesCount} file${filesCount > 1 ? 's' : ''})`;
+      } else {
+        sizeEstimate.textContent = "Estimated Output Size: -";
+      }
+    }
+
+    updateEstimate();
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      if(fileInput.files.length === 0) {
+        alert('Please select images to upload.');
+        return;
+      }
+
+      loadingSpinner.style.display = 'block';
+      submitButton.disabled = true;
+
+      const formData = new FormData(form);
+      const xhr = new XMLHttpRequest();
+
+      xhr.open('POST', '/upload', true);
+      xhr.responseType = 'blob';
+
+      xhr.upload.onloadstart = function() {
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressText.style.display = 'block';
+        progressText.textContent = 'Uploading: 0%';
+      };
+
+      xhr.upload.onprogress = function(event) {
+        if(event.lengthComputable) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          progressBar.style.width = percent + '%';
+          progressText.textContent = 'Uploading: ' + percent + '%';
+        }
+      };
+
+      xhr.onload = function() {
+        loadingSpinner.style.display = 'none';
+        submitButton.disabled = false;
+
+        if(xhr.status === 200) {
+          const blob = xhr.response;
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          let filename = pdfNameInput.value.trim() || "converted";
+          const ext = outputFormatSelect.value === 'zip' ? '.zip' : '.pdf';
+          if(!filename.toLowerCase().endsWith(ext)) filename += ext;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+
+          progressText.textContent = 'Upload complete! Downloading file...';
+          progressBar.style.width = '100%';
+        } else {
+          alert('Error during upload. Status: ' + xhr.status);
+        }
+        progressContainer.style.display = 'none';
+        progressText.style.display = 'none';
+      };
+
+      xhr.onerror = function() {
+        alert('Upload failed.');
+        loadingSpinner.style.display = 'none';
+        submitButton.disabled = false;
+        progressContainer.style.display = 'none';
+        progressText.style.display = 'none';
+      };
+
+      xhr.send(formData);
+    });
+  </script>
+</body>
+</html>
