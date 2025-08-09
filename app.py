@@ -62,3 +62,6 @@ def upload():
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)
+@app.route('/test')
+def test():
+    return "Test route is working!"
